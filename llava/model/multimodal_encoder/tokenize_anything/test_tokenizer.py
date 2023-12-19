@@ -39,27 +39,39 @@ image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
 image = Image.open(image).convert('RGB')
 
 images = [np.array(image)]
-images, _ = preprocess_images(images)
+images, im_info = preprocess_images(images)
 images = torch.Tensor(images)
+input_size = im_info[0, :2].astype("int")
+
 outputs = tokenizer.foward_for_image_tokenize(images, grid_size=8, image_size=1024)
+
+mask_pred = outputs["mask_pred"]
+mask_pred = tokenizer.upscale_masks(mask_pred.unsqueeze(0), images.shape[2:-1])[0]
+masks = mask_pred[:, :input_size[0], :input_size[1]]
+image = np.array(image)
+masks = tokenizer.upscale_masks(masks.unsqueeze(0), image.shape[:2])[0]
+masks = masks.gt(0).cpu().numpy()
+
 for key in outputs.keys():
     print(outputs[key].shape)
     if key == 'boxes':
         print(outputs[key])
 
-masks = outputs['mask_pred']  # (N, H, W)
-# image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
-# image = Image.open(image).convert('RGB')
-# image = image.resize((masks.shape[1], masks.shape[2]))
-# image = np.array(image, dtype=np.uint8)
-masks = masks.cpu().numpy().astype(np.uint8) * 255
-
-# image[masks[0]] = 255
+# masks = outputs['mask_pred']  # (N, H, W)
 import cv2
-for i in range(masks.shape[0]):
-    mask_ = masks[i]
-    cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_results/{}.jpg'.format(i), mask_)
-# cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_result.jpg', image)
+image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
+image = Image.open(image).convert('RGB')
+image = np.array(image, dtype=np.uint8)
+image[masks[33]] = 255
+cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_result.jpg', image)
+# masks = masks.cpu().numpy().astype(np.uint8) * 255
+#
+# # image[masks[0]] = 255
+# import cv2
+# for i in range(masks.shape[0]):
+#     mask_ = masks[i]
+#     cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_results/{}.jpg'.format(i), mask_)
+# # cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_result.jpg', image)
 
 
 
