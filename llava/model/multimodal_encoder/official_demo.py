@@ -19,7 +19,7 @@ model_type = "tap_vit_b"
 checkpoint = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/models/tap_vit_b_b45cbf.pkl"
 model = model_registry[model_type](checkpoint=checkpoint)
 
-concept_weights = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/merged_2560.pkl"
+concept_weights = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/concepts/merged_2560.pkl"
 model.concept_projector.reset_weights(concept_weights)
 model.text_decoder.reset_cache(max_batch_size=8)
 
