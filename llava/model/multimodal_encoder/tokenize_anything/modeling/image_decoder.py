@@ -48,6 +48,7 @@ class MLP(nn.Module):
 
 class Attention(nn.Module):
     """Multi-head attention."""
+    nn.MultiheadAttention
 
     def __init__(self, dim=256, num_heads=8, attn_ratio=1):
         super(Attention, self).__init__()
@@ -64,6 +65,7 @@ class Attention(nn.Module):
         q = self.q_proj(q).view((-1, q.size(1), self.num_heads, self.head_dim))
         k = self.k_proj(k).view((-1, k.size(1), self.num_heads, self.head_dim))
         v = self.v_proj(v).view((-1, v.size(1), self.num_heads, self.head_dim))
+        print(q.shape)
         o = flash_attn_func(q, k, v, softmax_scale=self.scale)
         return self.proj(o.flatten(2))
         # q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
