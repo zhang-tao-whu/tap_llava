@@ -125,7 +125,7 @@ class ImageTokenizer(nn.Module):
         # {"iou_pred" (64, 4), "mask_pred" (64, 4, h, w), "sem_tokens" (64, 4, c), "sem_embeds" (64, 4, 1024)}
 
         # perform nms
-        outputs["boxes"] = batched_mask_to_box(outputs["masks_pred"])
+        outputs["boxes"] = batched_mask_to_box(outputs["mask_pred"])
 
         # flatten
         outputs_ = {}
