@@ -66,7 +66,7 @@ concepts, scores = model.predict_concept(sem_embeds[mask_index])
 
 # Display comprehensive visual understanding.
 text_contents = [v.flatten()[0] for v in (concepts, iou_scores, scores)]
-vis_text = "{} ({:.2f}, {:.2f}): {}".format(*text_contents)
+vis_text = "{} ({:.2f}, {:.2f}):".format(*text_contents)
 plt.figure(figsize=(10,10))
 plt.imshow(vis_img)
 plt.figtext(0.5, 0.1, vis_text, fontsize=16, ha="center")
