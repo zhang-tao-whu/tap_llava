@@ -62,10 +62,10 @@ masks = model.upscale_masks(masks, original_size).gt(0).cpu().numpy()
 # Predict concepts and generate captions.
 sem_tokens, sem_embeds = outputs["sem_tokens"], outputs["sem_embeds"]
 concepts, scores = model.predict_concept(sem_embeds[mask_index])
-captions = model.generate_text(sem_tokens[mask_index][:, None, :])
+#captions = model.generate_text(sem_tokens[mask_index][:, None, :])
 
 # Display comprehensive visual understanding.
-text_contents = [v.flatten()[0] for v in (concepts, iou_scores, scores, captions)]
+text_contents = [v.flatten()[0] for v in (concepts, iou_scores, scores)]
 vis_text = "{} ({:.2f}, {:.2f}): {}".format(*text_contents)
 plt.figure(figsize=(10,10))
 plt.imshow(vis_img)
