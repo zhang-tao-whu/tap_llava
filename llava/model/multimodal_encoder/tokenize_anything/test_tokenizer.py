@@ -44,6 +44,8 @@ images = torch.Tensor(images).to(tokenizer.pixel_mean.device).permute(0, 3, 1, 2
 outputs = tokenizer.foward_for_image_tokenize(images, grid_size=8, image_size=1024)
 for key in outputs.keys():
     print(outputs[key].shape)
+    if key == 'boxes':
+        print(key)
 
 
 
