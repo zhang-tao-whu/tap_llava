@@ -82,7 +82,8 @@ vis_text = "{} ({:.2f}, {:.2f}):".format(*text_contents)
 plt.figure(figsize=(10,10))
 plt.imshow(vis_img)
 plt.figtext(0.5, 0.1, vis_text, fontsize=16, ha="center")
-show_mask(masks[32:33], plt.gca())
+for i in range(masks.shape[0]):
+    show_mask(masks[i:i+1], plt.gca())
 plt.axis('off')
 plt.savefig('/home/zhangtao19/lmms/LLaVA/work_dirs/test_fig.png')
 
