@@ -150,7 +150,7 @@ class ImageTokenizer(nn.Module):
             outputs_[key] = outputs_[key][keep_by_nms]
 
         # return outputs_["sem_embeds"]  # (N, 1024)
-        return outputs
+        return outputs_
 
     def forward(self, inputs):
         """Define the computation performed at every call.
