@@ -52,7 +52,7 @@ masks = outputs['mask_pred']  # (N, H, W)
 # image = Image.open(image).convert('RGB')
 # image = image.resize((masks.shape[1], masks.shape[2]))
 # image = np.array(image, dtype=np.uint8)
-masks = masks.cpu().numpy()
+masks = masks.cpu().numpy().astype(np.uint8) * 255
 
 # image[masks[0]] = 255
 import cv2
