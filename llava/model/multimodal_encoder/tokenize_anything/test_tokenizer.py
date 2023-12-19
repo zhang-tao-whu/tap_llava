@@ -48,14 +48,18 @@ for key in outputs.keys():
         print(outputs[key])
 
 masks = outputs['mask_pred']  # (N, H, W)
-image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
-image = Image.open(image).convert('RGB')
-image = image.resize((masks.shape[1], masks.shape[2]))
-image = np.array(image, dtype=np.uint8)
+# image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
+# image = Image.open(image).convert('RGB')
+# image = image.resize((masks.shape[1], masks.shape[2]))
+# image = np.array(image, dtype=np.uint8)
 masks = masks.cpu().numpy()
-image[masks[0]] = 255
+
+# image[masks[0]] = 255
 import cv2
-cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_result.jpg', image)
+for i in range(masks.shape[0]):
+    mask_ = masks[i]
+    cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_results/{}.jpg'.format(i), mask_)
+# cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_result.jpg', image)
 
 
 
