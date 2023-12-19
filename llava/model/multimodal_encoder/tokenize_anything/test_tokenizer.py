@@ -40,6 +40,7 @@ image = Image.open(image).convert('RGB')
 
 images = [np.array(image)]
 images, _ = preprocess_images(images)
+images = torch.Tensor(images).to(tokenizer.device)
 outputs = tokenizer.foward_for_image_tokenize(images, grid_size=8, image_size=1024)
 for key in outputs.keys():
     print(outputs[key].shape)
