@@ -83,7 +83,6 @@ class ImageTokenizer(nn.Module):
             The image features.
 
         """
-        print(inputs["img"].shape)
         features = self.image_encoder(inputs["img"])
         img_embeds = features[0].permute(0, 2, 3, 1).unsqueeze_(1)
         return {"features": features, "img_embeds": img_embeds}
