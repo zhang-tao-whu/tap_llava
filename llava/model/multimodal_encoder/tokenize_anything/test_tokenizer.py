@@ -38,7 +38,7 @@ tokenizer = model_registry_['tap_vit_b'](checkpoint='/home/zhangtao19/lmms/LLaVA
 image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
 image = Image.open(image).convert('RGB')
 
-images = [image]
+images = [np.array(image)]
 images, _ = preprocess_images(images)
 outputs = tokenizer.foward_for_image_tokenize(images, grid_size=8, image_size=1024)
 for key in outputs.keys():
