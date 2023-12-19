@@ -88,7 +88,7 @@ def display_mask_on_image(image, mask):
 image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
 image = Image.open(image).convert('RGB')
 image = np.array(image, dtype=np.uint8)
-mask = masks
+mask = masks.cpu().numpy()
 
 display_mask_on_image(image, mask)
 
