@@ -62,7 +62,7 @@ def display_mask_on_image(image, mask):
     canvas = np.zeros((image_h, image_w, 3), dtype=np.uint8)
 
     # 将 mask 逐个叠加到画布上
-    for i in range(mask_n):
+    for i in range(3):
         # 将当前 mask 缩放到与图像相同大小
         resized_mask = cv2.resize(mask[i], (image_w, image_h))
 
