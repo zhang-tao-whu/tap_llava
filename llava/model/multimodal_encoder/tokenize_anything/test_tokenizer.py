@@ -46,7 +46,7 @@ input_size = im_info[0, :2].astype("int")
 outputs = tokenizer.foward_for_image_tokenize(images, grid_size=8, image_size=1024)
 
 mask_pred = outputs["mask_pred"]
-mask_pred = tokenizer.upscale_masks(mask_pred.unsqueeze(0), images.shape[2:-1])[0]
+mask_pred = tokenizer.upscale_masks(mask_pred.unsqueeze(0), images.shape[1:-1])[0]
 masks = mask_pred[:, :input_size[0], :input_size[1]]
 image = np.array(image)
 masks = tokenizer.upscale_masks(masks.unsqueeze(0), image.shape[:2])[0]
