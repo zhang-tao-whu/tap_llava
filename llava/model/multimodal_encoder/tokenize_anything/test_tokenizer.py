@@ -33,9 +33,9 @@ def preprocess_images(imgs):
     im_info = np.hstack([im_shapes, im_scales]).astype("float32")
     return im_batch, im_info
 
-tokenizer = model_registry_['tap_vit_b'](checkpoint='tokenize-anything/models/tap_vit_b_b45cbf.pkl')
+tokenizer = model_registry_['tap_vit_b'](checkpoint='/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/models/tap_vit_b_b45cbf.pkl')
 
-image = './/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
+image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
 image = Image.open(image).convert('RGB')
 
 images = [image]
