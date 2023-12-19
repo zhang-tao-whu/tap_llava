@@ -48,7 +48,6 @@ class MLP(nn.Module):
 
 class Attention(nn.Module):
     """Multi-head attention."""
-    nn.MultiheadAttention
 
     def __init__(self, dim=256, num_heads=8, attn_ratio=1):
         super(Attention, self).__init__()

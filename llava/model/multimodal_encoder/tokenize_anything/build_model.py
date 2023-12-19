@@ -38,6 +38,7 @@ def get_device(device_index):
 
 
 def load_weights(module, weights_file, strict=True):
+    print(weights_file)
     """Load a weights file."""
     if not weights_file:
         return module._IncompatibleKeys([], [])
@@ -138,7 +139,7 @@ def image_tokenizer_for_llava(image_encoder, checkpoint=None, device=0, dtype="f
         #),
     )
     model.float()
-    #load_weights(model, checkpoint)
+    load_weights(model, checkpoint)
     # model = model.to(device=get_device(device))
     # model = model.eval() if not kwargs.get("training", False) else model
     # model = model.half() if dtype == "float16" else model
