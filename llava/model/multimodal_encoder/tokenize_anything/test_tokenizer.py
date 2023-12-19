@@ -48,48 +48,16 @@ for key in outputs.keys():
         print(outputs[key])
 
 masks = outputs['mask_pred']  # (N, H, W)
-
-import cv2
-import numpy as np
-import random
-
-def display_mask_on_image(image, mask):
-    # 获取图像和 mask 的尺寸
-    image_h, image_w, _ = image.shape
-    mask_n, mask_h, mask_w = mask.shape
-
-    # 创建一个与图像相同大小的空白画布
-    canvas = np.zeros((image_h, image_w, 3), dtype=np.uint8)
-
-    # 将 mask 逐个叠加到画布上
-    for i in range(3):
-        # 将当前 mask 缩放到与图像相同大小
-        resized_mask = cv2.resize(mask[i], (image_w, image_h))
-
-        # 将 mask 的值映射到 0-255 范围
-        resized_mask = (resized_mask * 255).astype(np.uint8)
-
-        # 将 mask 的值设为蓝色
-        resized_mask = cv2.cvtColor(resized_mask, cv2.COLOR_GRAY2BGR)
-        resized_mask[:, :, 0] = random.randint(0, 255)
-        resized_mask[:, :, 1] = random.randint(0, 255)
-        resized_mask[:, :, 2] = random.randint(0, 255)
-
-        # 将 mask 叠加到画布上
-        canvas = cv2.addWeighted(canvas, 1, resized_mask, 0.5, 0)
-
-    # 将图像和 mask 叠加到画布上
-    result = cv2.addWeighted(image, 0.7, canvas, 0.3, 0)
-
-    # 显示结果
-    cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_result.jpg', result)
-
-# 示例用法
 image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
 image = Image.open(image).convert('RGB')
+image = image.resize((masks.shape[1], masks.shape[2]))
 image = np.array(image, dtype=np.uint8)
-mask = masks.to(torch.float32).cpu().numpy()
+masks = masks.cpu().numpy()
+image[masks[0]] = 255
+import cv2
+cv2.imwrite('/home/zhangtao19/lmms/LLaVA/work_dirs/test_result.jpg', image)
 
-display_mask_on_image(image, mask)
+
+
 
 
