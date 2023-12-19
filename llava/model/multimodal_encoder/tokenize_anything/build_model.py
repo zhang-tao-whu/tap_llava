@@ -65,7 +65,7 @@ def load_weights_(module, weights_file, strict=True, remove='text_decoder'):
     state_dict_ = {}
     for key in state_dict.keys():
         if remove not in key:
-            state_dict_ = state_dict[key]
+            state_dict_[key] = state_dict[key]
     state_dict = state_dict_
     return module.load_state_dict(state_dict, strict=strict)
 
