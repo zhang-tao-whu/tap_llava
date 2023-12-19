@@ -62,9 +62,11 @@ def load_weights_(module, weights_file, strict=True, remove='text_decoder'):
                 state_dict[k] = torch.from_numpy(v) if isinstance(v, np.ndarray) else v
     else:
         state_dict = torch.load(weights_file)
+    state_dict_ = {}
     for key in state_dict.keys():
-        if remove in key:
-            del state_dict[key]
+        if remove not in key:
+            state_dict_ = state_dict[key]
+    state_dict = state_dict_
     return module.load_state_dict(state_dict, strict=strict)
 
 def vit_encoder(depth, embed_dim, num_heads, out_dim, image_size):
