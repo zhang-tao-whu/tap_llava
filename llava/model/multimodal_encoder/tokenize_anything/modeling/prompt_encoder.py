@@ -50,7 +50,6 @@ class PromptEncoder(nn.Module):
             coords = coords.__add__(0.5).__itruediv__(self.img_size[::-1])
             coords = self.to_tensor(coords.clip(0, 1).astype("float32"))
             labels = self.to_tensor(labels.astype("int64"))
-            print(coords)
             return coords, labels
         if boxes is not None:
             coords = boxes.reshape((-1, 2, 2))
