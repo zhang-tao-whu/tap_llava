@@ -15,8 +15,8 @@ import sys
 sys.path.append("..")
 from tokenize_anything import model_registry
 
-model_type = "tap_vit_b"
-checkpoint = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/models/tap_vit_b_b45cbf.pkl"
+model_type = "tap_vit_l"
+checkpoint = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/models/tap_vit_l_03f8ec.pkl"
 model = model_registry[model_type](checkpoint=checkpoint)
 
 concept_weights = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/concepts/merged_2560.pkl"

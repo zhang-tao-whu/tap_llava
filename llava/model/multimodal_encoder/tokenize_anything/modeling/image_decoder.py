@@ -76,15 +76,6 @@ class Attention(nn.Module):
     #     o = flash_attn_func(q, k, v, softmax_scale=self.scale)
     #     return self.proj(o.flatten(2))
 
-        # # q (64, 10, 8, 32) (b, q, n_head, c)
-        # q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2) # (b, n_head, q, c)
-        # # (bs, nhead, n, c)
-        # scores = torch.matmul(q, k.transpose(-2, -1)) / self.scale  # (bs, nhead, nq, nk)
-        # attention = scores.softmax(dim=-1)
-        # out = torch.matmul(attention, v).transpose(1, 2).flatten(2).contiguous()
-        # out = self.proj(out)
-        # return out
-
 
 class Block(nn.Module):
     """Transformer block."""
