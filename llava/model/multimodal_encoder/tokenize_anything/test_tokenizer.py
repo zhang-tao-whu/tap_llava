@@ -52,7 +52,7 @@ offset = 1 / (2 * grid_size)
 points_one_side = np.linspace(offset, 1 - offset, grid_size)
 points_x = np.tile(points_one_side[None, :], (grid_size, 1))
 points_y = np.tile(points_one_side[:, None], (1, grid_size))
-points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * input_size
+points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * input_size[:2]
 points = points[:, None, :]  # (64, 1, 2)
 labels = np.ones((points.shape[0], 1), dtype=np.int64)  # (64, 1)
 inputs.update({"points": (points, labels)})
