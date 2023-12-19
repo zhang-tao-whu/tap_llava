@@ -45,7 +45,6 @@ class MLP(nn.Module):
     def forward(self, x):
         return self.fc2(self.activation(self.fc1(x)))
 
-
 class Attention(nn.Module):
     """Multi-head attention."""
 
@@ -61,11 +60,22 @@ class Attention(nn.Module):
         self.scale = self.head_dim**-0.5
 
     def forward(self, q, k, v):
-        q = self.q_proj(q).view((-1, q.size(1), self.num_heads, self.head_dim))
-        k = self.k_proj(k).view((-1, k.size(1), self.num_heads, self.head_dim))
-        v = self.v_proj(v).view((-1, v.size(1), self.num_heads, self.head_dim))
-        o = flash_attn_func(q, k, v, softmax_scale=self.scale)
-        return self.proj(o.flatten(2))
+        q_shape = (-1, q.size(1), self.num_heads, self.head_dim)
+        kv_shape = (-1, k.size(1), self.num_heads, self.head_dim)
+        q = self.q_proj(q).reshape(q_shape).permute(0, 2, 1, 3)
+        k = self.k_proj(k).reshape(kv_shape).permute(0, 2, 1, 3)
+        v = self.v_proj(v).reshape(kv_shape).permute(0, 2, 1, 3)
+        attn = q @ k.transpose(-2, -1).mul(self.scale)
+        o = nn.functional.softmax(attn, dim=-1) @ v
+        return self.proj(o.transpose(1, 2).flatten(2))
+
+    # def forward(self, q, k, v):
+    #     q = self.q_proj(q).view((-1, q.size(1), self.num_heads, self.head_dim))
+    #     k = self.k_proj(k).view((-1, k.size(1), self.num_heads, self.head_dim))
+    #     v = self.v_proj(v).view((-1, v.size(1), self.num_heads, self.head_dim))
+    #     o = flash_attn_func(q, k, v, softmax_scale=self.scale)
+    #     return self.proj(o.flatten(2))
+
         # # q (64, 10, 8, 32) (b, q, n_head, c)
         # q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2) # (b, n_head, q, c)
         # # (bs, nhead, n, c)
