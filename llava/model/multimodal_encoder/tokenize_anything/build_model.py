@@ -137,6 +137,7 @@ def image_tokenizer_for_llava(image_encoder, checkpoint=None, device=0, dtype="f
         #    vocab_size=text_tokenizer.n_words,
         #),
     )
+    model.float()
     #load_weights(model, checkpoint)
     # model = model.to(device=get_device(device))
     # model = model.eval() if not kwargs.get("training", False) else model
