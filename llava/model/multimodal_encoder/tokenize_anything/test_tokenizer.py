@@ -62,7 +62,6 @@ def display_mask_on_image(image, mask):
     canvas = np.zeros((image_h, image_w, 3), dtype=np.uint8)
 
     # 将 mask 逐个叠加到画布上
-    print(mask.dtype)
     for i in range(mask_n):
         # 将当前 mask 缩放到与图像相同大小
         resized_mask = cv2.resize(mask[i], (image_w, image_h))
@@ -89,7 +88,7 @@ def display_mask_on_image(image, mask):
 image = '/home/zhangtao19/lmms/LLaVA/work_dirs/test.jpg'
 image = Image.open(image).convert('RGB')
 image = np.array(image, dtype=np.uint8)
-mask = masks.cpu().numpy()
+mask = masks.to(torch.float32).cpu().numpy()
 
 display_mask_on_image(image, mask)
 
