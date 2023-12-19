@@ -47,24 +47,24 @@ def rank0_print(*args):
 
 @dataclass
 class ModelArguments:
-    model_name_or_path: Optional[str] = field(default="facebook/opt-125m")
-    version: Optional[str] = field(default="v0")
-    freeze_backbone: bool = field(default=False)
-    tune_mm_mlp_adapter: bool = field(default=False)
-    vision_tower: Optional[str] = field(default=None)
-    mm_vision_select_layer: Optional[int] = field(default=-1)   # default to the last layer
-    pretrain_mm_mlp_adapter: Optional[str] = field(default=None)
-    mm_projector_type: Optional[str] = field(default='linear')
-    mm_use_im_start_end: bool = field(default=False)
-    mm_use_im_patch_token: bool = field(default=True)
-    mm_vision_select_feature: Optional[str] = field(default="patch")
+    model_name_or_path: Optional[str] = field(default="facebook/opt-125m")  # llm weights dir
+    version: Optional[str] = field(default="v0")  # vicuna version
+    freeze_backbone: bool = field(default=False)  # not denoted
+    tune_mm_mlp_adapter: bool = field(default=False)  # when stage 1 align, True, else False
+    vision_tower: Optional[str] = field(default=None)  # clip encoder version
+    mm_vision_select_layer: Optional[int] = field(default=-1)   # default to the last layer  # -2
+    pretrain_mm_mlp_adapter: Optional[str] = field(default=None)  # trained projecter weight dir in stage 1
+    mm_projector_type: Optional[str] = field(default='linear')  # llava 1.5, mlp
+    mm_use_im_start_end: bool = field(default=False)   # False
+    mm_use_im_patch_token: bool = field(default=True)  # False
+    mm_vision_select_feature: Optional[str] = field(default="patch")  # not input
 
 
 @dataclass
 class DataArguments:
     data_path: str = field(default=None,
                            metadata={"help": "Path to the training data."})
-    lazy_preprocess: bool = False
+    lazy_preprocess: bool = False  # True
     is_multimodal: bool = False
     image_folder: Optional[str] = field(default=None)
     image_aspect_ratio: str = 'square'
@@ -75,7 +75,7 @@ class TrainingArguments(transformers.TrainingArguments):
     cache_dir: Optional[str] = field(default=None)
     optim: str = field(default="adamw_torch")
     remove_unused_columns: bool = field(default=False)
-    freeze_mm_mlp_adapter: bool = field(default=False)
+    freeze_mm_mlp_adapter: bool = field(default=False)  # not freeze
     mpt_attn_impl: Optional[str] = field(default="triton")
     model_max_length: int = field(
         default=512,
@@ -83,7 +83,7 @@ class TrainingArguments(transformers.TrainingArguments):
             "help":
             "Maximum sequence length. Sequences will be right padded (and possibly truncated)."
         },
-    )
+    )  # max 2048 tokens
     double_quant: bool = field(
         default=True,
         metadata={"help": "Compress the quantization statistics through double quantization."}
@@ -453,12 +453,15 @@ def preprocess_v1(
         cur_len = 1
         target[:cur_len] = IGNORE_INDEX
         for i, rou in enumerate(rounds):
+            # last round
             if rou == "":
                 break
 
             parts = rou.split(sep)
+            # must 2 roles
             if len(parts) != 2:
                 break
+            # parts[0]: user words and gpt:
             parts[0] += sep
 
             if has_image:
@@ -642,6 +645,7 @@ class LazySupervisedDataset(Dataset):
 
     @property
     def lengths(self):
+        # get_all samplers token lengths
         length_list = []
         for sample in self.list_data_dict:
             img_tokens = 128 if 'image' in sample else 0
@@ -650,6 +654,7 @@ class LazySupervisedDataset(Dataset):
 
     @property
     def modality_lengths(self):
+        # get text token lengths, if not contain image, * -1
         length_list = []
         for sample in self.list_data_dict:
             cur_len = sum(len(conv['value'].split()) for conv in sample['conversations'])
@@ -755,14 +760,17 @@ def make_supervised_data_module(tokenizer: transformers.PreTrainedTokenizer,
 
 def train():
     global local_rank
-
+    # init args
     parser = transformers.HfArgumentParser(
         (ModelArguments, DataArguments, TrainingArguments))
+    # cover some args
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     local_rank = training_args.local_rank
+    # param type
     compute_dtype = (torch.float16 if training_args.fp16 else (torch.bfloat16 if training_args.bf16 else torch.float32))
 
     bnb_model_from_pretrained_args = {}
+    # default 16
     if training_args.bits in [4, 8]:
         from transformers import BitsAndBytesConfig
         bnb_model_from_pretrained_args.update(dict(
@@ -780,7 +788,7 @@ def train():
                 bnb_4bit_quant_type=training_args.quant_type # {'fp4', 'nf4'}
             )
         ))
-
+    # vision encoder, clip-l
     if model_args.vision_tower is not None:
         if 'mpt' in model_args.model_name_or_path:
             config = transformers.AutoConfig.from_pretrained(model_args.model_name_or_path, trust_remote_code=True)
@@ -876,7 +884,7 @@ def train():
             model_args=model_args,
             fsdp=training_args.fsdp
         )
-        
+
         vision_tower = model.get_vision_tower()
         vision_tower.to(dtype=torch.bfloat16 if training_args.bf16 else torch.float16, device=training_args.device)
 
