@@ -118,7 +118,7 @@ class ImageTokenizer(nn.Module):
         points_y = np.tile(points_one_side[:, None], (1, grid_size))
         points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * image_size
         points = points[:, None, :]  # (1, 64, 1, 2)
-        labels = np.ones((points.shape[0], 1, 1), dtype=np.int64)  # (64, 1, 1)
+        labels = np.ones((points.shape[0], 1), dtype=np.int64)  # (64, 1, 1)
         inputs.update({"points": (points, labels)})
 
         outputs = self.get_outputs(inputs)

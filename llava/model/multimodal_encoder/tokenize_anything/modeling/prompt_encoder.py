@@ -45,7 +45,6 @@ class PromptEncoder(nn.Module):
         if points is not None:
             if isinstance(points, (tuple, list)):
                 coords, labels = points
-                print(coords.shape, labels.shape)
             else:
                 coords, labels = points[:, :, :2], points[:, :, 2]
             coords = coords.__add__(0.5).__itruediv__(self.img_size[::-1])
