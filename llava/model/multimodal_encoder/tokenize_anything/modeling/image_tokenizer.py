@@ -108,6 +108,8 @@ class ImageTokenizer(nn.Module):
         #  images (b, c, h, w)
         assert images.shape[0] == 1
         inputs = {'img': images}
+        inputs = self.get_inputs(inputs)
+        # get image feature
         inputs.update(self.get_features(inputs))
 
         # gen_grid points
