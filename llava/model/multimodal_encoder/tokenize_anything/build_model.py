@@ -38,7 +38,6 @@ def get_device(device_index):
 
 
 def load_weights(module, weights_file, strict=True):
-    print(weights_file)
     """Load a weights file."""
     if not weights_file:
         return module._IncompatibleKeys([], [])
@@ -51,6 +50,22 @@ def load_weights(module, weights_file, strict=True):
         state_dict = torch.load(weights_file)
     return module.load_state_dict(state_dict, strict=strict)
 
+def load_weights_(module, weights_file, strict=True, remove='text_decoder'):
+    print(weights_file)
+    """Load a weights file."""
+    if not weights_file:
+        return module._IncompatibleKeys([], [])
+    if weights_file.endswith(".pkl"):
+        with open(weights_file, "rb") as f:
+            state_dict = pickle.load(f)
+            for k, v in state_dict.items():
+                state_dict[k] = torch.from_numpy(v) if isinstance(v, np.ndarray) else v
+    else:
+        state_dict = torch.load(weights_file)
+    for key in state_dict.keys():
+        if remove in key:
+            del state_dict[key]
+    return module.load_state_dict(state_dict, strict=strict)
 
 def vit_encoder(depth, embed_dim, num_heads, out_dim, image_size):
     """Build an image encoder with ViT."""
@@ -139,7 +154,7 @@ def image_tokenizer_for_llava(image_encoder, checkpoint=None, device=0, dtype="f
         #),
     )
     model.float()
-    load_weights(model, checkpoint)
+    load_weights_(model, checkpoint)
     # model = model.to(device=get_device(device))
     # model = model.eval() if not kwargs.get("training", False) else model
     # model = model.half() if dtype == "float16" else model
