@@ -1,10 +1,10 @@
 import torch
 import numpy as np
 from PIL import Image
-from .utils import im_rescale
-from .utils import im_vstack
+from utils import im_rescale
+from utils import im_vstack
 
-from .build_model import model_registry_
+from build_model import model_registry_
 
 
 def expand2square(pil_img, background_color):
