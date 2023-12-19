@@ -126,6 +126,7 @@ class ImageTokenizer(nn.Module):
 
         # perform nms
         outputs["mask_pred"] = outputs["mask_pred"].to(torch.uint8)
+        print(outputs["mask_pred"].sum(dim=-1).sum(dim=-1))
         outputs["boxes"] = batched_mask_to_box(outputs["mask_pred"])
 
         # flatten

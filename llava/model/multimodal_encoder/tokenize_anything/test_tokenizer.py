@@ -45,7 +45,7 @@ outputs = tokenizer.foward_for_image_tokenize(images, grid_size=8, image_size=10
 for key in outputs.keys():
     print(outputs[key].shape)
     if key == 'boxes':
-        print(key)
+        print(outputs[key])
 
 
 
