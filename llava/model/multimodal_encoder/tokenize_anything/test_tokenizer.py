@@ -63,8 +63,10 @@ outputs = model.get_outputs(inputs)
 # Select final mask.
 iou_score, mask_pred = outputs["iou_pred"], outputs["mask_pred"]
 #iou_score[:, 0] -= 1000.0  # Penalize the score of boundary boxes.
-keep = iou_score.max(dim=1)[0] > 0.3
-mask_index = torch.arange(iou_score.shape[0])[keep], iou_score.argmax(1)[keep]
+iou_score = iou_score.flatten(0, 1)
+mask_pred = mask_pred.flatten(0, 1)
+keep = iou_score > 0.8
+mask_index = torch.arange(iou_score.shape[0])[keep]
 
 # Upscale masks to the original image resolution.
 iou_scores, masks = iou_score[mask_index], mask_pred[mask_index]
