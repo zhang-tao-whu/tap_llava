@@ -156,7 +156,7 @@ class ImageTokenizer(nn.Module):
         # return outputs_["sem_embeds"]  # (N, 1024)
         masks = self.upscale_masks(outputs_['mask_pred'][:, None], images.shape[1:-1])
         masks = masks[..., : image_size[0], : image_size[1]]
-        masks = masks.upscale_masks(masks, original_size).gt(0).cpu().numpy()
+        masks = self.upscale_masks(masks, original_size).gt(0).cpu().numpy()
         outputs_['mask_pred'] = masks
         return outputs_
 
