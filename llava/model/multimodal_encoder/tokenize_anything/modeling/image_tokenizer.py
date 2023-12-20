@@ -104,7 +104,7 @@ class ImageTokenizer(nn.Module):
         inputs.update(self.prompt_encoder(inputs))
         return self.image_decoder(inputs)
 
-    def foward_for_image_tokenize(self, images, grid_size=8, image_size=1024):
+    def foward_for_image_tokenize(self, images, grid_size=8, image_size=1024, original_size=None):
         #  images (b, c, h, w)
         assert images.shape[0] == 1
         inputs = {'img': images}
@@ -113,12 +113,13 @@ class ImageTokenizer(nn.Module):
         inputs.update(self.get_features(inputs))
 
         # gen_grid points
-
+        if isinstance(image_size, int):
+            image_size = np.array([image_size, image_size])
         offset = 1 / (2 * grid_size)
         points_one_side = np.linspace(offset, 1 - offset, grid_size)
         points_x = np.tile(points_one_side[None, :], (grid_size, 1))
         points_y = np.tile(points_one_side[:, None], (1, grid_size))
-        points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * image_size
+        points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * image_size[::-1]
         points = points[:, None, :]  # (1, 64, 1, 2)
         labels = np.ones((points.shape[0], 1), dtype=np.int64)  # (64, 1)
         inputs.update({"points": (points, labels)})
@@ -153,6 +154,10 @@ class ImageTokenizer(nn.Module):
             outputs_[key] = outputs_[key][keep_by_nms]
 
         # return outputs_["sem_embeds"]  # (N, 1024)
+        masks = self.upscale_masks(outputs_['mask_pred'][:, None], images.shape[1:-1])
+        masks = masks[..., : image_size[0], : image_size[1]]
+        masks = masks.upscale_masks(masks, original_size).gt(0).cpu().numpy()
+        outputs_['mask_pred'] = masks
         return outputs_
 
     def forward(self, inputs):

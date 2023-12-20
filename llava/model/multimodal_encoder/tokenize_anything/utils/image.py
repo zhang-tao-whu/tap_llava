@@ -36,6 +36,7 @@ def im_resize(img, size=None, scale=None, mode="linear"):
 
 def im_rescale(img, scales, max_size=0):
     """Rescale image to match the detecting scales."""
+    # reshape longest side to 1024
     im_shape = img.shape
     img_list, img_scales = [], []
     size_min = np.min(im_shape[:2])
@@ -52,6 +53,7 @@ def im_rescale(img, scales, max_size=0):
 
 def im_vstack(arrays, fill_value=None, dtype=None, size=None, align=None):
     """Stack image arrays in sequence vertically."""
+    # padding image to 1024*1024 and stack them
     if fill_value is None:
         return np.vstack(arrays)
     # Compute the max stack shape.

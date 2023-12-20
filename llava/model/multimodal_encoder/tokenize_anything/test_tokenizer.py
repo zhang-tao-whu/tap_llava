@@ -41,50 +41,52 @@ input_size, original_size = img_list[0].shape, img.shape[:2]
 print(input_size, "<-", original_size, "*", img_scales[0])
 
 img_batch = im_vstack(img_list, fill_value=model.pixel_mean_value, size=(1024, 1024))
-inputs = model.get_inputs({"img": img_batch})
-inputs.update(model.get_features(inputs))
+output = model.foward_for_image_tokenize(img_batch, grid_size=8, image_size=input_size, original_size=original_size)
+# inputs = model.get_inputs({"img": img_batch})
+# inputs.update(model.get_features(inputs))
+#
+# # inputs["points"] = np.array([[[1050, 600, 1], [0, 0, 4]]], "float32") # (1, 2, 3)
+# # inputs["points"][:, :, :2] *= np.array(img_scales, "float32")
+#
+# grid_size = 8
+# offset = 1 / (2 * grid_size)
+# points_one_side = np.linspace(offset, 1 - offset, grid_size)
+# points_x = np.tile(points_one_side[None, :], (grid_size, 1))
+# points_y = np.tile(points_one_side[:, None], (1, grid_size))
+# points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * input_size[:2][::-1]
+# points = points[:, None, :]  # (64, 1, 2)
+# labels = np.ones((points.shape[0], 1), dtype=np.int64)  # (64, 1)
+# inputs.update({"points": (points, labels)})
+#
+# # Decode outputs for the point prompt.
+# outputs = model.get_outputs(inputs)
+#
+# # Select final mask.
+# iou_score, mask_pred = outputs["iou_pred"], outputs["mask_pred"]
+# #iou_score[:, 0] -= 1000.0  # Penalize the score of boundary boxes.
+# iou_score = iou_score.flatten(0, 1)
+# mask_pred = mask_pred.flatten(0, 1)
+# keep = iou_score > 0.8
+# mask_index = torch.arange(iou_score.shape[0])[keep]
+#
+# # Upscale masks to the original image resolution.
+# iou_scores, masks = iou_score[mask_index], mask_pred[mask_index]
+# masks = model.upscale_masks(masks[:, None], img_batch.shape[1:-1])
+# masks = masks[..., : input_size[0], : input_size[1]]
+# masks = model.upscale_masks(masks, original_size).gt(0).cpu().numpy()
 
-# inputs["points"] = np.array([[[1050, 600, 1], [0, 0, 4]]], "float32") # (1, 2, 3)
-# inputs["points"][:, :, :2] *= np.array(img_scales, "float32")
+# # Predict concepts and generate captions.
+# sem_tokens, sem_embeds = outputs["sem_tokens"], outputs["sem_embeds"]
+# #concepts, scores = model.predict_concept(sem_embeds[mask_index])
+# #captions = model.generate_text(sem_tokens[mask_index][:, None, :])
 
-grid_size = 8
-offset = 1 / (2 * grid_size)
-points_one_side = np.linspace(offset, 1 - offset, grid_size)
-points_x = np.tile(points_one_side[None, :], (grid_size, 1))
-points_y = np.tile(points_one_side[:, None], (1, grid_size))
-points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * input_size[:2][::-1]
-points = points[:, None, :]  # (64, 1, 2)
-labels = np.ones((points.shape[0], 1), dtype=np.int64)  # (64, 1)
-inputs.update({"points": (points, labels)})
-
-# Decode outputs for the point prompt.
-outputs = model.get_outputs(inputs)
-
-# Select final mask.
-iou_score, mask_pred = outputs["iou_pred"], outputs["mask_pred"]
-#iou_score[:, 0] -= 1000.0  # Penalize the score of boundary boxes.
-iou_score = iou_score.flatten(0, 1)
-mask_pred = mask_pred.flatten(0, 1)
-keep = iou_score > 0.8
-mask_index = torch.arange(iou_score.shape[0])[keep]
-
-# Upscale masks to the original image resolution.
-iou_scores, masks = iou_score[mask_index], mask_pred[mask_index]
-masks = model.upscale_masks(masks[:, None], img_batch.shape[1:-1])
-masks = masks[..., : input_size[0], : input_size[1]]
-masks = model.upscale_masks(masks, original_size).gt(0).cpu().numpy()
-
-# Predict concepts and generate captions.
-sem_tokens, sem_embeds = outputs["sem_tokens"], outputs["sem_embeds"]
-#concepts, scores = model.predict_concept(sem_embeds[mask_index])
-#captions = model.generate_text(sem_tokens[mask_index][:, None, :])
-
-# Display comprehensive visual understanding.
-text_contents = [v.flatten()[0] for v in (iou_scores, iou_scores, iou_scores)]
-vis_text = "{} ({:.2f}, {:.2f}):".format(*text_contents)
+# # Display comprehensive visual understanding.
+# text_contents = [v.flatten()[0] for v in (iou_scores, iou_scores, iou_scores)]
+# vis_text = "{} ({:.2f}, {:.2f}):".format(*text_contents)
+masks = output['mask_pred']
 plt.figure(figsize=(10,10))
 plt.imshow(vis_img)
-plt.figtext(0.5, 0.1, vis_text, fontsize=16, ha="center")
+# plt.figtext(0.5, 0.1, vis_text, fontsize=16, ha="center")
 for i in range(masks.shape[0]):
     show_mask(masks[i:i+1], plt.gca())
 plt.axis('off')
