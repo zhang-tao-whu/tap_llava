@@ -147,6 +147,7 @@ class ImageTokenizer(nn.Module):
         stable_score = calculate_stability_score(
             outputs_["mask_pred"],
         )
+        print(keep_iou_score)
         keep_stable_score = stable_score > 0.8
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_stable_score]
