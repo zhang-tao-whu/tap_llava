@@ -152,7 +152,7 @@ class ImageTokenizer(nn.Module):
             outputs_["mask_pred"],
         )
         print(stable_score)
-        keep_stable_score = stable_score > 0.8
+        keep_stable_score = stable_score > 0.6
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_stable_score]
         print(len(outputs_['iou_pred']))
@@ -170,6 +170,7 @@ class ImageTokenizer(nn.Module):
 
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_by_nms]
+        print(len(outputs_['iou_pred']))
 
         # return outputs_["sem_embeds"]  # (N, 1024)
         masks = self.upscale_masks(outputs_['mask_pred'][:, None], images.shape[1:-1])
