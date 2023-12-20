@@ -126,6 +126,8 @@ class ImageTokenizer(nn.Module):
 
         outputs = self.get_outputs(inputs)
         # {"iou_pred" (64, 4), "mask_pred" (64, 4, h, w), "sem_tokens" (64, 4, c), "sem_embeds" (64, 4, 1024)}
+        for key in outputs.keys():
+            outputs[key] = outputs[key][:, 1:]
 
         # perform nms
         outputs["mask_pred_"] = outputs["mask_pred"].gt(0)
