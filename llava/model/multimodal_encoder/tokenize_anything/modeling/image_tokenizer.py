@@ -165,7 +165,7 @@ class ImageTokenizer(nn.Module):
             outputs_["boxes"].float(),
             outputs_["iou_pred"],
             torch.zeros_like(outputs_["boxes"][:, 0]),  # categories
-            iou_threshold=0.7,
+            iou_threshold=0.5,
         )
 
         for key in outputs_.keys():
