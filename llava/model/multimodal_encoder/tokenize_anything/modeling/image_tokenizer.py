@@ -126,8 +126,10 @@ class ImageTokenizer(nn.Module):
 
         outputs = self.get_outputs(inputs)
         # {"iou_pred" (64, 4), "mask_pred" (64, 4, h, w), "sem_tokens" (64, 4, c), "sem_embeds" (64, 4, 1024)}
+        outputs["iou_pred"][:, :1] -= 1000
+        keep_index = torch.arange(outputs["iou_pred"].shape[0]), outputs["iou_pred"].argmax(1)
         for key in outputs.keys():
-            outputs[key] = outputs[key][:, 1:]
+            outputs[key] = outputs[key][keep_index]
 
         # perform nms
         outputs["mask_pred_"] = outputs["mask_pred"].gt(0)
@@ -135,11 +137,11 @@ class ImageTokenizer(nn.Module):
         outputs["boxes"] = batched_mask_to_box(outputs["mask_pred_"])
 
         # flatten
-        outputs_ = {}
-        for key in outputs.keys():
-            # if key == 'mask_pred':
-            #     continue
-            outputs_[key] = outputs[key].flatten(0, 1)
+        outputs_ = outputs
+        # for key in outputs.keys():
+        #     # if key == 'mask_pred':
+        #     #     continue
+        #     outputs_[key] = outputs[key].flatten(0, 1)
 
         keep_iou_score = outputs_['iou_pred'] > 0.6
         for key in outputs_.keys():
