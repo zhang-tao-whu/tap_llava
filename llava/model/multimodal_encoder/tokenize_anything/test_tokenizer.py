@@ -25,6 +25,8 @@ sys.path.append("..")
 model_type = "tap_vit_l"
 checkpoint = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/models/tap_vit_l_03f8ec.pkl"
 model = model_registry_[model_type](checkpoint=checkpoint)
+model.eval()
+model.cuda()
 
 #concept_weights = "/home/zhangtao19/lmms/LLaVA/work_dirs/tokenize-anything/concepts/merged_2560.pkl"
 #model.concept_projector.reset_weights(concept_weights)
