@@ -145,7 +145,7 @@ class ImageTokenizer(nn.Module):
 
         print(outputs_['iou_pred'])
 
-        keep_iou_score = outputs_['iou_pred'] > 0.88
+        keep_iou_score = outputs_['iou_pred'] > 0.8
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_iou_score]
         print(len(outputs_['iou_pred']))
@@ -154,7 +154,7 @@ class ImageTokenizer(nn.Module):
             outputs_["mask_pred"],
         )
         print(stable_score)
-        keep_stable_score = stable_score > 0.95
+        keep_stable_score = stable_score > 0.8
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_stable_score]
         print(len(outputs_['iou_pred']))
