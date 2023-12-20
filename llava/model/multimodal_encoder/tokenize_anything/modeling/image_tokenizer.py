@@ -139,7 +139,7 @@ class ImageTokenizer(nn.Module):
             #     continue
             outputs_[key] = outputs[key].flatten(0, 1)
 
-        keep_iou_score = outputs_['iou_pred'] > 0.5
+        keep_iou_score = outputs_['iou_pred'] > 0.6
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_iou_score]
         print(len(outputs_['iou_pred']))
@@ -148,7 +148,7 @@ class ImageTokenizer(nn.Module):
             outputs_["mask_pred"],
         )
         print(stable_score)
-        keep_stable_score = stable_score > 0.6
+        keep_stable_score = stable_score > 0.7
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_stable_score]
         print(len(outputs_['iou_pred']))
@@ -339,5 +339,5 @@ def calculate_stability_score(
         .sum(-1, dtype=torch.int16)
         .sum(-1, dtype=torch.int32)
     )
-    return intersections / unions
+    return intersections / (unions + 1)
 
