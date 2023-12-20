@@ -139,6 +139,17 @@ class ImageTokenizer(nn.Module):
             #     continue
             outputs_[key] = outputs[key].flatten(0, 1)
 
+        keep_iou_score = outputs_['iou_pred'] > 0.88
+        for key in outputs_.keys():
+            outputs_[key] = outputs_[key][keep_iou_score]
+
+        stable_score = calculate_stability_score(
+            outputs_["mask_pred"],
+        )
+        keep_stable_score = stable_score > 0.95
+        for key in outputs_.keys():
+            outputs_[key] = outputs_[key][keep_stable_score]
+
         keep_boxes = outputs_['boxes'].sum(dim=-1) != 0
         for key in outputs_.keys():
             outputs_[key] = outputs_[key][keep_boxes]
@@ -305,5 +316,25 @@ def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
 
     return out
 
-
+def calculate_stability_score(
+    masks: torch.Tensor, mask_threshold=0.0, threshold_offset=1.0
+) -> torch.Tensor:
+    """
+    Computes the stability score for a batch of masks. The stability
+    score is the IoU between the binary masks obtained by thresholding
+    the predicted mask logits at high and low values.
+    """
+    # One mask is always contained inside the other.
+    # Save memory by preventing unnecessary cast to torch.int64
+    intersections = (
+        (masks > (mask_threshold + threshold_offset))
+        .sum(-1, dtype=torch.int16)
+        .sum(-1, dtype=torch.int32)
+    )
+    unions = (
+        (masks > (mask_threshold - threshold_offset))
+        .sum(-1, dtype=torch.int16)
+        .sum(-1, dtype=torch.int32)
+    )
+    return intersections / unions
 
