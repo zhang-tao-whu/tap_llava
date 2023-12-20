@@ -41,7 +41,7 @@ input_size, original_size = img_list[0].shape, img.shape[:2]
 print(input_size, "<-", original_size, "*", img_scales[0])
 
 img_batch = im_vstack(img_list, fill_value=model.pixel_mean_value, size=(1024, 1024))
-output = model.foward_for_image_tokenize(img_batch, grid_size=8, image_size=input_size[:2], original_size=original_size)
+output = model.foward_for_image_tokenize(img_batch, grid_size=16, image_size=input_size[:2], original_size=original_size)
 # inputs = model.get_inputs({"img": img_batch})
 # inputs.update(model.get_features(inputs))
 #
