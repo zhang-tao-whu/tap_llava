@@ -18,7 +18,7 @@ from abc import ABC, abstractmethod
 import torch
 import torch.nn as nn
 
-from .multimodal_encoder.builder import build_vision_tower
+from .multimodal_encoder.builder import build_vision_tower, build_tap_vision_tower
 from .multimodal_projector.builder import build_vision_projector
 
 from llava.constants import IGNORE_INDEX, IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
@@ -30,7 +30,8 @@ class LlavaMetaModel:
         super(LlavaMetaModel, self).__init__(config)
 
         if hasattr(config, "mm_vision_tower"):
-            self.vision_tower = build_vision_tower(config, delay_load=True)
+            # self.vision_tower = build_vision_tower(config, delay_load=True)
+            self.vision_tower = build_tap_vision_tower(config, delay_load=True)
             self.mm_projector = build_vision_projector(config)
 
     def get_vision_tower(self):
@@ -59,11 +60,13 @@ class LlavaMetaModel:
                 vision_tower = self.vision_tower[0]
             else:
                 vision_tower = self.vision_tower
-            vision_tower.load_model()
+            #tap have loadded
+            #vision_tower.load_model()
 
         self.config.use_mm_proj = True
         self.config.mm_projector_type = getattr(model_args, 'mm_projector_type', 'linear')
-        self.config.mm_hidden_size = vision_tower.hidden_size
+        # self.config.mm_hidden_size = vision_tower.hidden_size
+        self.config.mm_hidden_size = vision_tower.semantic_hidden_channel
         self.config.mm_vision_select_layer = mm_vision_select_layer
         self.config.mm_vision_select_feature = mm_vision_select_feature
 
@@ -96,8 +99,23 @@ class LlavaMetaForCausalLM(ABC):
         image_features = self.get_model().mm_projector(image_features)
         return image_features
 
+    def encode_images_tap_for_single_image(self, image, image_input_size, image_original_size,):
+        # image (1, c, h, w)
+        image_features = self.get_model().get_vision_tower().foward_for_image_tokenize(
+            image, grid_size=8, image_size=image_input_size, original_size=image_original_size,
+            iou_threthold=0.8, stable_threthold=0.8, nms_threthold=0.7)['sem_embeds']  # (N, 1024)
+        image_features = self.get_model().mm_projector(image_features)
+        return image_features
+
+    def encode_images_tap(self, images, images_input_size, images_original_size,):
+        # image (1, c, h, w)
+        ret = []
+        for i in range(images.shape[0]):
+            ret.append(self.encode_images_tap_for_single_image(images[i: i+1], images_input_size[i], images_original_size[i],))
+        return ret
+
     def prepare_inputs_labels_for_multimodal(
-        self, input_ids, position_ids, attention_mask, past_key_values, labels, images
+        self, input_ids, position_ids, attention_mask, past_key_values, labels, images, images_input_size, images_original_size,
     ):
         vision_tower = self.get_vision_tower()
         if vision_tower is None or images is None or input_ids.shape[1] == 1:
@@ -114,12 +132,16 @@ class LlavaMetaForCausalLM(ABC):
         if type(images) is list or images.ndim == 5:
             # for multi image
             concat_images = torch.cat([image for image in images], dim=0)
-            image_features = self.encode_images(concat_images)
-            split_sizes = [image.shape[0] for image in images]
-            image_features = torch.split(image_features, split_sizes, dim=0)
-            image_features = [x.flatten(0, 1).to(self.device) for x in image_features]
+            # image_features = self.encode_images(concat_images)
+            # split_sizes = [image.shape[0] for image in images]
+            # image_features = torch.split(image_features, split_sizes, dim=0)
+            # image_features = [x.flatten(0, 1).to(self.device) for x in image_features]
+            image_features = self.encode_images_tap(concat_images)
+            image_features = [x.to(self.device) for x in image_features]
         else:
-            image_features = self.encode_images(images).to(self.device)
+            #image_features = self.encode_images(images).to(self.device)
+            image_features = self.encode_images_tap(images)
+            image_features = [x.to(self.device) for x in image_features]
 
         # TODO: image start / end is not implemented here to support pretraining.
         if getattr(self.config, 'tune_mm_mlp_adapter', False) and getattr(self.config, 'mm_use_im_start_end', False):

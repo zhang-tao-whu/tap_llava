@@ -19,6 +19,8 @@ import numpy as np
 import torch
 from torch import nn
 from torchvision.ops.boxes import batched_nms
+from ..utils import im_rescale
+from ..utils import im_vstack
 
 
 class ImageTokenizer(nn.Module):
@@ -45,6 +47,7 @@ class ImageTokenizer(nn.Module):
         self.pixel_mean_value = pixel_mean  # BGR order.
         self.register_buffer("pixel_mean", torch.Tensor(pixel_mean))
         self.register_buffer("pixel_rsig", torch.Tensor(pixel_std).reciprocal_())
+        self.image_processor = TAP_image_processor(pixel_mean_value=self.pixel_mean_value)
 
     def get_inputs(self, inputs):
         """Return the model inputs.
@@ -65,6 +68,30 @@ class ImageTokenizer(nn.Module):
         if inputs["img"].device != self.pixel_mean.device:
             inputs["img"] = inputs["img"].to(device=self.pixel_mean.device)
         inputs["img"] = inputs["img"].to(dtype=self.pixel_mean.dtype)
+        inputs["img"] = inputs["img"].sub(self.pixel_mean).mul_(self.pixel_rsig)
+        inputs["img"] = inputs["img"].permute(0, 3, 1, 2)
+        return inputs
+
+    def get_inputs_llava(self, inputs):
+        """Return the model inputs.
+
+        Parameters
+        ----------
+        inputs : dict
+            The initial inputs.
+
+        Returns
+        -------
+        dict
+            The model inputs.
+
+        """
+        if not isinstance(inputs["img"], torch.Tensor):
+            inputs["img"] = torch.from_numpy(inputs["img"])
+        if inputs["img"].device != self.pixel_mean.device:
+            inputs["img"] = inputs["img"].to(device=self.pixel_mean.device)
+        inputs["img"] = inputs["img"].to(dtype=self.pixel_mean.dtype)
+        inputs["img"] = inputs["img"].permute(0, 2, 3, 1)
         inputs["img"] = inputs["img"].sub(self.pixel_mean).mul_(self.pixel_rsig)
         inputs["img"] = inputs["img"].permute(0, 3, 1, 2)
         return inputs
@@ -104,11 +131,15 @@ class ImageTokenizer(nn.Module):
         inputs.update(self.prompt_encoder(inputs))
         return self.image_decoder(inputs)
 
-    def foward_for_image_tokenize(self, images, grid_size=8, image_size=1024, original_size=None):
+    def foward_for_image_tokenize(self, images, grid_size=8, image_size=1024, original_size=None,
+                                  iou_threthold=0.8, stable_threthold=0.8, nms_threthold=0.7, input_format='llava'):
         #  images (b, c, h, w)
         assert images.shape[0] == 1
         inputs = {'img': images}
-        inputs = self.get_inputs(inputs)
+        if input_format is not 'llava':
+            inputs = self.get_inputs(inputs)
+        else:
+            inputs = self.get_inputs_llava(inputs)
         # get image feature
         inputs.update(self.get_features(inputs))
 
@@ -120,66 +151,57 @@ class ImageTokenizer(nn.Module):
         points_x = np.tile(points_one_side[None, :], (grid_size, 1))
         points_y = np.tile(points_one_side[:, None], (1, grid_size))
         points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2) * image_size[::-1]
-        points = points[:, None, :]  # (1, 64, 1, 2)
+        points = points[:, None, :]  # (64, 1, 2)
         labels = np.ones((points.shape[0], 1), dtype=np.int64)  # (64, 1)
         inputs.update({"points": (points, labels)})
 
         outputs = self.get_outputs(inputs)
         # {"iou_pred" (64, 4), "mask_pred" (64, 4, h, w), "sem_tokens" (64, 4, c), "sem_embeds" (64, 4, 1024)}
-        outputs["iou_pred"][:, :1] -= 1000
-        keep_index = torch.arange(outputs["iou_pred"].shape[0]), outputs["iou_pred"].argmax(1)
+        outputs["iou_pred"][:, :1] -= 1000  # remove box out
+        keep_index = torch.arange(outputs["iou_pred"].shape[0]), outputs["iou_pred"].argmax(1)  # select the max score
         for key in outputs.keys():
             outputs[key] = outputs[key][keep_index]
 
-        # perform nms
-        outputs["mask_pred_"] = outputs["mask_pred"].gt(0)
-        #outputs["mask_pred"] = outputs["mask_pred"].to(torch.uint8)
-        outputs["boxes"] = batched_mask_to_box(outputs["mask_pred_"])
+        # filter according iou score
+        keep_iou_score = outputs['iou_pred'] > iou_threthold
+        for key in outputs.keys():
+            outputs[key] = outputs[key][keep_iou_score]
 
-        # flatten
-        outputs_ = outputs
-        # for key in outputs.keys():
-        #     # if key == 'mask_pred':
-        #     #     continue
-        #     outputs_[key] = outputs[key].flatten(0, 1)
-
-        print(outputs_['iou_pred'])
-
-        keep_iou_score = outputs_['iou_pred'] > 0.8
-        for key in outputs_.keys():
-            outputs_[key] = outputs_[key][keep_iou_score]
-        print(len(outputs_['iou_pred']))
-
+        # filter according mask stable
         stable_score = calculate_stability_score(
-            outputs_["mask_pred"],
+            outputs["mask_pred"],
         )
-        print(stable_score)
-        keep_stable_score = stable_score > 0.8
-        for key in outputs_.keys():
-            outputs_[key] = outputs_[key][keep_stable_score]
-        print(len(outputs_['iou_pred']))
+        keep_stable_score = stable_score > stable_threthold
+        for key in outputs.keys():
+            outputs[key] = outputs[key][keep_stable_score]
 
-        keep_boxes = outputs_['boxes'].sum(dim=-1) != 0
-        for key in outputs_.keys():
-            outputs_[key] = outputs_[key][keep_boxes]
+        # perform nms
+        # get bbox from mask
+        outputs["mask_pred_"] = outputs["mask_pred"].gt(0)
+        outputs["boxes"] = batched_mask_to_box(outputs["mask_pred_"])
+        # filter none mask
+        keep_boxes = outputs['boxes'].sum(dim=-1) != 0
+        for key in outputs.keys():
+            outputs[key] = outputs[key][keep_boxes]
 
         keep_by_nms = batched_nms(
-            outputs_["boxes"].float(),
-            outputs_["iou_pred"],
-            torch.zeros_like(outputs_["boxes"][:, 0]),  # categories
-            iou_threshold=0.7,
+            outputs["boxes"].float(),
+            outputs["iou_pred"],
+            torch.zeros_like(outputs["boxes"][:, 0]),  # categories
+            iou_threshold=nms_threthold,
         )
+        for key in outputs.keys():
+            outputs[key] = outputs[key][keep_by_nms]
 
-        for key in outputs_.keys():
-            outputs_[key] = outputs_[key][keep_by_nms]
-        print(len(outputs_['iou_pred']))
-
-        # return outputs_["sem_embeds"]  # (N, 1024)
-        masks = self.upscale_masks(outputs_['mask_pred'][:, None], images.shape[1:-1])
-        masks = masks[..., : image_size[0], : image_size[1]]
-        masks = self.upscale_masks(masks, original_size).gt(0).cpu().numpy()
-        outputs_['mask_pred'] = masks
-        return outputs_
+        # no need for masks
+        # # return outputs_["sem_embeds"]  # (N, 1024)
+        # masks = self.upscale_masks(outputs_['mask_pred'][:, None], images.shape[1:-1])
+        # masks = masks[..., : image_size[0], : image_size[1]]
+        # masks = self.upscale_masks(masks, original_size).gt(0).cpu().numpy()
+        # outputs_['mask_pred'] = masks
+        del outputs['mask_pred'], outputs["mask_pred_"]
+        # use outputs['sem_embeds'] (N, 1024)
+        return outputs
 
     def forward(self, inputs):
         """Define the computation performed at every call.
@@ -348,3 +370,19 @@ def calculate_stability_score(
     )
     return intersections / (unions + 1)
 
+class TAP_image_processor(object):
+    def __init__(self, pixel_mean_value):
+        self.image_size = 1024
+        self.pixel_mean_value = pixel_mean_value
+
+    def preprocess(self, image, return_tensors='pt'):
+        image = np.array(image)
+        img_list, img_scales = im_rescale(image, scales=[self.image_size], max_size=self.image_size)
+        input_size, original_size = img_list[0].shape, image.shape[:2]
+
+        img_batch = im_vstack(img_list, fill_value=self.pixel_mean_value, size=(self.image_size, self.image_size))
+        if return_tensors == 'pt':
+            img_batch = torch.from_numpy(img_batch)
+            img_batch = img_batch.permute(0, 3, 1, 2)
+        ret = {'pixel_values': img_batch, 'image_size': input_size[:2], 'original_size': original_size}
+        return ret

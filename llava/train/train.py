@@ -672,23 +672,28 @@ class LazySupervisedDataset(Dataset):
             image_folder = self.data_args.image_folder
             processor = self.data_args.image_processor
             image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
-            if self.data_args.image_aspect_ratio == 'pad':
-                def expand2square(pil_img, background_color):
-                    width, height = pil_img.size
-                    if width == height:
-                        return pil_img
-                    elif width > height:
-                        result = Image.new(pil_img.mode, (width, width), background_color)
-                        result.paste(pil_img, (0, (width - height) // 2))
-                        return result
-                    else:
-                        result = Image.new(pil_img.mode, (height, height), background_color)
-                        result.paste(pil_img, ((height - width) // 2, 0))
-                        return result
-                image = expand2square(image, tuple(int(x*255) for x in processor.image_mean))
-                image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
-            else:
-                image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
+            # if self.data_args.image_aspect_ratio == 'pad':
+            #     def expand2square(pil_img, background_color):
+            #         width, height = pil_img.size
+            #         if width == height:
+            #             return pil_img
+            #         elif width > height:
+            #             result = Image.new(pil_img.mode, (width, width), background_color)
+            #             result.paste(pil_img, (0, (width - height) // 2))
+            #             return result
+            #         else:
+            #             result = Image.new(pil_img.mode, (height, height), background_color)
+            #             result.paste(pil_img, ((height - width) // 2, 0))
+            #             return result
+            #     image = expand2square(image, tuple(int(x*255) for x in processor.image_mean))
+            #     image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
+            # else:
+            #     image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
+            image_processed = processor.preprocess(image, return_tensors='pt')
+            image = image_processed['pixel_values'][0]
+            input_image_size = image_processed['image_size']  # (no padded size)
+            original_image_size = image_processed['original_size']  # (original size)
+
             sources = preprocess_multimodal(
                 copy.deepcopy([e["conversations"] for e in sources]),
                 self.data_args)
@@ -705,10 +710,14 @@ class LazySupervisedDataset(Dataset):
         # image exist in the data
         if 'image' in self.list_data_dict[i]:
             data_dict['image'] = image
+            data_dict['image_input_size'] = input_image_size
+            data_dict['image_original_size'] = original_image_size
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
             crop_size = self.data_args.image_processor.crop_size
             data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
+            data_dict['image_input_size'] = (1024, 1024)
+            data_dict['image_original_size'] = (1024, 1024)
         return data_dict
 
 
@@ -738,11 +747,14 @@ class DataCollatorForSupervisedDataset(object):
 
         if 'image' in instances[0]:
             images = [instance['image'] for instance in instances]
+            images_input_size = [instance['image_input_size'] for instance in instances]
+            images_original_size = [instance['image_original_size'] for instance in instances]
             if all(x is not None and x.shape == images[0].shape for x in images):
                 batch['images'] = torch.stack(images)
             else:
                 batch['images'] = images
-
+            batch['images_input_size'] = images_input_size
+            batch['images_original_size'] = images_original_size
         return batch
 
 
