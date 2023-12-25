@@ -23,7 +23,7 @@ deepspeed llava/train/train_mem.py \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
-    --bf16 True \
+    --bf16 False \
     --output_dir ./checkpoints/llava-$MODEL_VERSION-pretrain \
     --num_train_epochs 1 \
     --per_device_train_batch_size 4 \
