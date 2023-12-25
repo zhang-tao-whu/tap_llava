@@ -4,7 +4,7 @@
 
 # Uncomment and set the following variables correspondingly to run this script:
 
-# MODEL_VERSION=vicuna-v1-3-7b
+MODEL_VERSION=vicuna-v1-3-7b
 # MODEL_VERSION=llama-2-7b-chat
 
 ########### DO NOT CHANGE ###########
@@ -14,10 +14,10 @@ PROMPT_VERSION=plain
 
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
-    --model_name_or_path ./checkpoints/$MODEL_VERSION \
+    --model_name_or_path ./work_dirs/vicuna-7b-v1.5/ \
     --version $PROMPT_VERSION \
-    --data_path /path/to/pretrain_data.json \
-    --image_folder /path/to/images \
+    --data_path ./work_dirs/pretrain_dataset/LLaVA-Pretrain/blip_laion_cc_sbu_558k.json \
+    --image_folder ./work_dirs/pretrain_dataset/LLaVA-Pretrain/images \
     --vision_tower openai/clip-vit-large-patch14 \
     --tune_mm_mlp_adapter True \
     --mm_vision_select_layer -2 \
@@ -26,9 +26,9 @@ deepspeed llava/train/train_mem.py \
     --bf16 True \
     --output_dir ./checkpoints/llava-$MODEL_VERSION-pretrain \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 16 \
+    --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 1 \
+    --gradient_accumulation_steps 8 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 24000 \
