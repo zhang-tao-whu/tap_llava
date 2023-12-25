@@ -12,7 +12,7 @@ MODEL_VERSION=vicuna-v1-3-7b
 PROMPT_VERSION=plain
 ########### DO NOT CHANGE ###########
 
-deepspeed llava/train/train_mem.py \
+deepspeed llava/train/train_xformers.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path ./work_dirs/vicuna-7b-v1.5/ \
     --version $PROMPT_VERSION \
