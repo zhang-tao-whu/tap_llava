@@ -119,8 +119,6 @@ class PatchEmbed(nn.Module):
         self.proj = nn.Conv2d(3, dim, patch_size, patch_size, bias=bias)
 
     def forward(self, x):
-        print(x.device)
-        print([item.device for item in self.proj.parameters()])
         return self.proj(x).flatten(2).transpose(1, 2)
 
 
@@ -236,6 +234,7 @@ class ImageEncoderViT(nn.Module):
         self.cross_indices = list(range(depth // 4 - 1, depth, depth // 4))
 
     def forward(self, x):
+        print("image_encoder_x: ", x.device)
         x = self.patch_embed(x)
         x = self.pos_embed(x)
         x = space_to_depth(x, self.window_size)
