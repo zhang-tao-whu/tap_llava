@@ -239,7 +239,7 @@ class ImageEncoderViT(nn.Module):
         #     break
         # if x.device != self.device:
         #     x = x.to(self.device)
-        # 
+        #
         x = self.patch_embed(x)
         x = self.pos_embed(x)
         x = space_to_depth(x, self.window_size)
