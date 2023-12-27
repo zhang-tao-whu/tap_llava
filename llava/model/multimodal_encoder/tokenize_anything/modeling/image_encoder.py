@@ -106,10 +106,6 @@ class Bottleneck(nn.Module):
 
     def forward(self, x):
         shortcut = x
-        print(x.dtype)
-        for parm in self.parameters():
-            print(parm.dtype)
-        print('-------------')
         x = self.activation(self.norm1(self.conv1(x)))
         x = self.activation(self.norm2(self.conv2(x)))
         return self.norm3(self.conv3(x)).add_(shortcut)
