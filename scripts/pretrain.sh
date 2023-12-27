@@ -24,6 +24,7 @@ deepspeed llava/train/train_xformers.py \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 False \
+    --fp16 True \
     --output_dir ./checkpoints/llava-$MODEL_VERSION-pretrain \
     --num_train_epochs 1 \
     --per_device_train_batch_size 4 \
