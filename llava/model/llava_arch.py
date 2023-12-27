@@ -103,7 +103,7 @@ class LlavaMetaForCausalLM(ABC):
     def encode_images_tap_for_single_image(self, image, image_input_size, image_original_size,):
         # image (1, c, h, w)
         for param in self.get_model().get_vision_tower().parameters():
-            print('process', param.sum())
+            print('process', param)
             break
         image_features = self.get_model().get_vision_tower().foward_for_image_tokenize(
             image, grid_size=8, image_size=image_input_size, original_size=image_original_size,

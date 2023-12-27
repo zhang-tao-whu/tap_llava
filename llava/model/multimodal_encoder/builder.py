@@ -20,6 +20,6 @@ def build_tap_vision_tower(vision_tower_cfg, **kwargs):
     model.eval()
     model.semantic_hidden_channel = 1024
     for param in model.parameters():
-        print('init', param.sum())
+        print('init', param)
         break
     return model
