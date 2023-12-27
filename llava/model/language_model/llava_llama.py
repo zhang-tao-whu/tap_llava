@@ -70,7 +70,6 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple, CausalLMOutputWithPast]:
 
-        print(images_input_size, images_original_size)
         if inputs_embeds is None:
             (
                 input_ids,
@@ -105,11 +104,15 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
 
     def prepare_inputs_for_generation(self, input_ids, past_key_values=None, inputs_embeds=None, **kwargs):
         images = kwargs.pop("images", None)
+        images_input_size = kwargs.pop("images_input_size", None)
+        images_original_size = kwargs.pop("images_original_size", None)
         _inputs = super().prepare_inputs_for_generation(
             input_ids, past_key_values=past_key_values, inputs_embeds=inputs_embeds, **kwargs
         )
         if images is not None:
             _inputs['images'] = images
+            _inputs['images_original_size'] = images_original_size
+            _inputs['images_input_size'] = images_input_size
         return _inputs
 
 AutoConfig.register("llava", LlavaConfig)
