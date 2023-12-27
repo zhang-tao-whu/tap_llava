@@ -74,7 +74,7 @@ class ImageTokenizer(nn.Module):
 
     def load_model(self, ):
         from ..build_model import load_weights_
-        load_weights_(self, self.chekpoint)
+        load_weights_(self, self.checkpoint)
         return
 
     def get_inputs_llava(self, inputs):
