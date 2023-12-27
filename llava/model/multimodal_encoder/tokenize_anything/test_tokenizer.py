@@ -44,7 +44,7 @@ plt.imshow(vis_img)
 #
 # img_batch = im_vstack(img_list, fill_value=model.pixel_mean_value, size=(1024, 1024))
 
-processed_images = model.image_processor.process(img)
+processed_images = model.image_processor.preprocess(img)
 output = model.foward_for_image_tokenize(processed_images['pixel_values'], grid_size=8,
                                          image_size=processed_images['image_size'],
                                          original_size=processed_images['original_size'])
