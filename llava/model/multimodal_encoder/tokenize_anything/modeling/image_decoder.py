@@ -225,6 +225,7 @@ class ImageDecoder(nn.Module):
         mask_pred = mask_pred.view([-1, self.num_mask_tokens] + mask_pred_size)
         outputs = {"iou_pred": self.iou_pred(iou_tokens), "mask_pred": mask_pred}
         outputs["sem_tokens"] = torch.stack(sem_tokens, dim=1)
+        outputs["mask_embeds"] = torch.stack(mask_tokens, dim=1)
         outputs["sem_embeds"] = self.sem_pred(outputs["sem_tokens"])
         return outputs
 

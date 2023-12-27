@@ -19,7 +19,7 @@ def build_tap_vision_tower(vision_tower_cfg, **kwargs):
     model = model_registry_[vision_tower](checkpoint=checkpoint)
     model.requires_grad_(False)
     model.eval()
-    model.semantic_hidden_channel = 1024
+    model.semantic_hidden_channel = 1024 + 256
     # for param in model.parameters():
     #     print('init', param[:10, 0, 0, 0].to(torch.float32).cpu().numpy())
     #     break
