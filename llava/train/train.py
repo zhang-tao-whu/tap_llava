@@ -825,6 +825,7 @@ def train():
         )
     model.config.use_cache = False
     print(model)
+    print(xxxx)
 
     if model_args.freeze_backbone:
         model.model.requires_grad_(False)
