@@ -72,6 +72,11 @@ class ImageTokenizer(nn.Module):
         inputs["img"] = inputs["img"].permute(0, 3, 1, 2)
         return inputs
 
+    def load_model(self, ):
+        from ..build_model import load_weights_
+        load_weights_(self, self.chekpoint)
+        return
+
     def get_inputs_llava(self, inputs):
         """Return the model inputs.
 

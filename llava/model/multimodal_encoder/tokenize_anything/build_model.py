@@ -157,8 +157,10 @@ def image_tokenizer_for_llava(image_encoder, checkpoint=None, device=0, dtype="f
     )
     # model.float()
     try:
-        load_weights_(model, checkpoint)
-        model.is_loaded = True
+        model.checkpoint = checkpoint
+        model.is_loaded = False
+        # load_weights_(model, checkpoint)
+        # model.is_loaded = True
     except:
         model.is_loaded = False
     model = model.half()
