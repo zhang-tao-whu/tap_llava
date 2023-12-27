@@ -155,6 +155,7 @@ class LlavaMetaForCausalLM(ABC):
             #image_features = self.encode_images(images).to(self.device)
             image_features = self.encode_images_tap(images, images_input_size, images_original_size)
             image_features = [x.to(self.device) for x in image_features]
+        print('image_feat: 'image_features[0].shape)
 
         # TODO: image start / end is not implemented here to support pretraining.
         if getattr(self.config, 'tune_mm_mlp_adapter', False) and getattr(self.config, 'mm_use_im_start_end', False):
