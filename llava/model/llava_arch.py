@@ -104,8 +104,8 @@ class LlavaMetaForCausalLM(ABC):
         self.get_model().get_vision_tower().eval()
         with torch.no_grad():
             image_features = self.get_model().get_vision_tower().foward_for_image_tokenize(
-                image, grid_size=8, image_size=image_input_size, original_size=image_original_size,
-                iou_threthold=0.8, stable_threthold=0.8, nms_threthold=0.7)
+                image, grid_size=16, image_size=image_input_size, original_size=image_original_size,
+                iou_threthold=0.6, stable_threthold=0.6, nms_threthold=0.7)
             sem_embeds = image_features['sem_embeds']  # (N, 1024)
             mask_embeds = image_features['mask_embeds']  # (N, 256)
             sparse_embeds = image_features['sparse_embeds']  # (N, 256)
