@@ -119,6 +119,8 @@ class PatchEmbed(nn.Module):
         self.proj = nn.Conv2d(3, dim, patch_size, patch_size, bias=bias)
 
     def forward(self, x):
+        print(x.device)
+        print([item.device for item in self.proj.parameters()])
         return self.proj(x).flatten(2).transpose(1, 2)
 
 
