@@ -164,7 +164,7 @@ def image_tokenizer_for_llava(image_encoder, checkpoint=None, device=0, dtype="f
         # model.is_loaded = True
     except:
         model.is_loaded = False
-    model = model.half()
+    #model = model.half()
     # model = model.to(device=get_device(device))
     # model = model.eval() if not kwargs.get("training", False) else model
     # model = model.half() if dtype == "float16" else model
