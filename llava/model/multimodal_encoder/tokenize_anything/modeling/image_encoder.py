@@ -234,7 +234,8 @@ class ImageEncoderViT(nn.Module):
         self.cross_indices = list(range(depth // 4 - 1, depth, depth // 4))
 
     def forward(self, x):
-        print("image_encoder_x: ", x.device)
+        if x.device != self.parameters()[0].device:
+            x = x.to(self.parameters()[0].device)
         x = self.patch_embed(x)
         x = self.pos_embed(x)
         x = space_to_depth(x, self.window_size)
