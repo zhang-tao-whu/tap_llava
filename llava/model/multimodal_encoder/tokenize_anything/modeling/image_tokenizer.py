@@ -168,9 +168,8 @@ class ImageTokenizer(nn.Module):
         keep_index = torch.arange(outputs["iou_pred"].shape[0]), outputs["iou_pred"].argmax(1)  # select the max score
         for key in outputs.keys():
             outputs[key] = outputs[key][keep_index]
-        sparse_embeds = inputs['sparse_embeds'][:, :1, :]
+        sparse_embeds = inputs['sparse_embeds'][:, 0, :]
         outputs['sparse_embeds'] = sparse_embeds
-        print(sparse_embeds.shape)
 
         # filter according iou score
         keep_iou_score = outputs['iou_pred'] > iou_threthold
