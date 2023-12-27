@@ -133,7 +133,7 @@ class ModelWorker:
                     raise ValueError("Number of images does not match number of <image> tokens in prompt")
 
                 images = [load_image_from_base64(image) for image in images]
-                images = process_images(images, image_processor, model.config)
+                images, new_input_shapes, new_original_shapes = process_images(images, image_processor, model.config)
 
                 if type(images) is list:
                     images = [image.to(self.model.device, dtype=torch.float16) for image in images]
@@ -148,7 +148,9 @@ class ModelWorker:
                 num_image_tokens = prompt.count(replace_token) * model.get_vision_tower().num_patches
             else:
                 images = None
-            image_args = {"images": images}
+                new_input_shapes, new_original_shapes = None, None
+            image_args = {"images": images, "images_input_size": new_input_shapes,
+                          "images_original_size": new_original_shapes}
         else:
             images = None
             image_args = {}
