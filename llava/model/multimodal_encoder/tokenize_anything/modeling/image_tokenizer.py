@@ -99,7 +99,6 @@ class ImageTokenizer(nn.Module):
         inputs["img"] = inputs["img"].permute(0, 2, 3, 1)
         inputs["img"] = inputs["img"].sub(self.pixel_mean).mul_(self.pixel_rsig)
         inputs["img"] = inputs["img"].permute(0, 3, 1, 2)
-        print(inputs["img"].dtype)
         return inputs
 
     def get_features(self, inputs):

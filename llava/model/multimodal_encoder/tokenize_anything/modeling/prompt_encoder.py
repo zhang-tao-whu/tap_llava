@@ -97,4 +97,6 @@ class PromptEncoder(nn.Module):
         img_embed_size = torch.Size(inputs["img_embeds"].shape[2:-1])
         if self.img_pos is None or self.img_pos.shape[0] != img_embed_size.numel():
             self.img_pos = self.encode_grid(img_embed_size).flatten(0, 1)
+        print(sparse_embeds[0].dtype)
+        print(self.img_pos.dtype)
         return {"sparse_embeds": sparse_embeds[0], "img_pos": self.img_pos}
