@@ -1,6 +1,7 @@
 import os
 from .clip_encoder import CLIPVisionTower
 from .tokenize_anything.build_model import model_registry_
+import torch
 
 
 # def build_vision_tower(vision_tower_cfg, **kwargs):
@@ -20,6 +21,6 @@ def build_tap_vision_tower(vision_tower_cfg, **kwargs):
     model.eval()
     model.semantic_hidden_channel = 1024
     for param in model.parameters():
-        print('init', param[:10, 0, 0, 0].cpu().numpy())
+        print('init', param[:10, 0, 0, 0].to(torch.float32).cpu().numpy())
         break
     return model
