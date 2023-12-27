@@ -137,9 +137,10 @@ class ImageTokenizer(nn.Module):
         assert images.shape[0] == 1
         print(images.shape)
         inputs = {'img': images}
-        if input_format is not 'llava':
+        if input_format != 'llava':
             inputs = self.get_inputs(inputs)
         else:
+            print('using lavva preinput')
             inputs = self.get_inputs_llava(inputs)
         # get image feature
         inputs.update(self.get_features(inputs))
@@ -381,7 +382,6 @@ class TAP_image_processor(object):
         self.pixel_mean_value = pixel_mean_value
 
     def preprocess(self, image, return_tensors='pt'):
-        image = np.array(image)[:, :, ::-1]
         img_list, img_scales = im_rescale(image, scales=[self.image_size], max_size=self.image_size)
         input_size, original_size = img_list[0].shape, image.shape[:2]
 
