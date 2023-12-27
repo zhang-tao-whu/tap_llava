@@ -150,6 +150,7 @@ class ModelWorker:
             else:
                 images = None
                 new_input_shapes, new_original_shapes = None, None
+            print(len(images), new_input_shapes, new_original_shapes)
             image_args = {"images": images, "images_input_size": new_input_shapes,
                           "images_original_size": new_original_shapes}
         else:
