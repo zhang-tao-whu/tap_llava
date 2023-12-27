@@ -122,7 +122,8 @@ class LlavaMetaForCausalLM(ABC):
         if vision_tower is None or images is None or input_ids.shape[1] == 1:
             print(vision_tower)
             print(images)
-            print(input_ids)
+            print(input_ids, '  image_idx:', IMAGE_TOKEN_INDEX)
+            print(past_key_values)
             if past_key_values is not None and vision_tower is not None and images is not None and input_ids.shape[1] == 1:
                 target_shape = past_key_values[-1][-1].shape[-2] + 1
                 attention_mask = torch.cat((attention_mask, torch.ones(
