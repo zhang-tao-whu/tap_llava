@@ -381,7 +381,7 @@ class TAP_image_processor(object):
         self.pixel_mean_value = pixel_mean_value
 
     def preprocess(self, image, return_tensors='pt'):
-        image = np.array(image)
+        image = np.array(image)[:, :, ::-1]
         img_list, img_scales = im_rescale(image, scales=[self.image_size], max_size=self.image_size)
         input_size, original_size = img_list[0].shape, image.shape[:2]
 
