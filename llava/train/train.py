@@ -824,6 +824,7 @@ def train():
             **bnb_model_from_pretrained_args
         )
     model.config.use_cache = False
+    print(model)
 
     if model_args.freeze_backbone:
         model.model.requires_grad_(False)
