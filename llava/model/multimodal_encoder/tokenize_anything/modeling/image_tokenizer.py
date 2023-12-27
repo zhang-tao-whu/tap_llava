@@ -139,6 +139,10 @@ class ImageTokenizer(nn.Module):
     def foward_for_image_tokenize(self, images, grid_size=8, image_size=1024, original_size=None,
                                   iou_threthold=0.8, stable_threthold=0.8, nms_threthold=0.7, input_format='llava'):
         #  images (b, c, h, w)
+        print(images.dtype)
+        for param in self.parameters():
+            print(param.dtype)
+            break
         assert images.shape[0] == 1
         inputs = {'img': images}
         if input_format != 'llava':
