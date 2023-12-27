@@ -101,10 +101,6 @@ class LlavaMetaForCausalLM(ABC):
         return image_features
 
     def encode_images_tap_for_single_image(self, image, image_input_size, image_original_size,):
-        # image (1, c, h, w)
-        # for param in self.get_model().get_vision_tower().parameters():
-        #     print('process', param[:10, 0, 0, 0])
-        #     break
         image_features = self.get_model().get_vision_tower().foward_for_image_tokenize(
             image, grid_size=8, image_size=image_input_size, original_size=image_original_size,
             iou_threthold=0.8, stable_threthold=0.8, nms_threthold=0.7)['sem_embeds']  # (N, 1024)
@@ -122,10 +118,6 @@ class LlavaMetaForCausalLM(ABC):
         self, input_ids, position_ids, attention_mask, past_key_values, labels, images, images_input_size, images_original_size,
     ):
         vision_tower = self.get_vision_tower()
-        print(input_ids)
-        print([past_key_values[-1][-1].shape[-2] if past_key_values is not None else None])
-        print(attention_mask.shape)
-        print('--------------')
         if vision_tower is None or images is None or input_ids.shape[1] == 1:
             if past_key_values is not None and vision_tower is not None and images is not None and input_ids.shape[1] == 1:
                 target_shape = past_key_values[-1][-1].shape[-2] + 1
@@ -158,7 +150,6 @@ class LlavaMetaForCausalLM(ABC):
             #image_features = self.encode_images(images).to(self.device)
             image_features = self.encode_images_tap(images, images_input_size, images_original_size)
             image_features = [x.to(self.device) for x in image_features]
-        print('image_feat: ', image_features[0].shape)
 
         # TODO: image start / end is not implemented here to support pretraining.
         if getattr(self.config, 'tune_mm_mlp_adapter', False) and getattr(self.config, 'mm_use_im_start_end', False):
