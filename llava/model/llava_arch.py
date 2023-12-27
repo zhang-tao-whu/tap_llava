@@ -102,8 +102,6 @@ class LlavaMetaForCausalLM(ABC):
 
     def encode_images_tap_for_single_image(self, image, image_input_size, image_original_size,):
         # image (1, c, h, w)
-        print(image.device)
-        print(self.get_model().get_vision_tower().pixel_mean.device)
         image_features = self.get_model().get_vision_tower().foward_for_image_tokenize(
             image, grid_size=8, image_size=image_input_size, original_size=image_original_size,
             iou_threthold=0.8, stable_threthold=0.8, nms_threthold=0.7)['sem_embeds']  # (N, 1024)
@@ -120,7 +118,6 @@ class LlavaMetaForCausalLM(ABC):
     def prepare_inputs_labels_for_multimodal(
         self, input_ids, position_ids, attention_mask, past_key_values, labels, images, images_input_size, images_original_size,
     ):
-        print(images_input_size, images_original_size,)
         vision_tower = self.get_vision_tower()
         if vision_tower is None or images is None or input_ids.shape[1] == 1:
             if past_key_values is not None and vision_tower is not None and images is not None and input_ids.shape[1] == 1:
