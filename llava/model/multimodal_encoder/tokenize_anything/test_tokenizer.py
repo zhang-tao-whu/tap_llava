@@ -38,12 +38,19 @@ plt.figure(figsize=(10, 10))
 plt.imshow(vis_img)
 # plt.show()
 
-img_list, img_scales = im_rescale(img, scales=[1024], max_size=1024)
-input_size, original_size = img_list[0].shape, img.shape[:2]
-print(input_size, "<-", original_size, "*", img_scales[0])
+# img_list, img_scales = im_rescale(img, scales=[1024], max_size=1024)
+# input_size, original_size = img_list[0].shape, img.shape[:2]
+# print(input_size, "<-", original_size, "*", img_scales[0])
+#
+# img_batch = im_vstack(img_list, fill_value=model.pixel_mean_value, size=(1024, 1024))
 
-img_batch = im_vstack(img_list, fill_value=model.pixel_mean_value, size=(1024, 1024))
-output = model.foward_for_image_tokenize(img_batch, grid_size=8, image_size=input_size[:2], original_size=original_size)
+processed_images = model.image_processor.process(img)
+output = model.foward_for_image_tokenize(processed_images['pixel_values'], grid_size=8,
+                                         image_size=processed_images['image_size'],
+                                         original_size=processed_images['original_size'])
+print(output['sem_embeds'].shape)
+
+# output = model.foward_for_image_tokenize(img_batch, grid_size=8, image_size=input_size[:2], original_size=original_size)
 # inputs = model.get_inputs({"img": img_batch})
 # inputs.update(model.get_features(inputs))
 #
@@ -85,14 +92,16 @@ output = model.foward_for_image_tokenize(img_batch, grid_size=8, image_size=inpu
 # # Display comprehensive visual understanding.
 # text_contents = [v.flatten()[0] for v in (iou_scores, iou_scores, iou_scores)]
 # vis_text = "{} ({:.2f}, {:.2f}):".format(*text_contents)
-masks = output['mask_pred']
-plt.figure(figsize=(10,10))
-plt.imshow(vis_img)
-# plt.figtext(0.5, 0.1, vis_text, fontsize=16, ha="center")
-for i in range(masks.shape[0]):
-    show_mask(masks[i:i+1], plt.gca())
-plt.axis('off')
-plt.savefig('/home/zhangtao19/lmms/LLaVA/work_dirs/test_fig.png')
+
+
+# masks = output['mask_pred']
+# plt.figure(figsize=(10,10))
+# plt.imshow(vis_img)
+# # plt.figtext(0.5, 0.1, vis_text, fontsize=16, ha="center")
+# for i in range(masks.shape[0]):
+#     show_mask(masks[i:i+1], plt.gca())
+# plt.axis('off')
+# plt.savefig('/home/zhangtao19/lmms/LLaVA/work_dirs/test_fig.png')
 
 # def expand2square(pil_img, background_color):
 #     width, height = pil_img.size
