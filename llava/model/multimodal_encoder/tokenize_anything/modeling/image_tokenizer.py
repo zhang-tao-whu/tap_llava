@@ -159,6 +159,7 @@ class ImageTokenizer(nn.Module):
         # {"iou_pred" (64, 4), "mask_pred" (64, 4, h, w), "sem_tokens" (64, 4, c), "sem_embeds" (64, 4, 1024)}
         outputs["iou_pred"][:, :1] -= 1000  # remove box out
         keep_index = torch.arange(outputs["iou_pred"].shape[0]), outputs["iou_pred"].argmax(1)  # select the max score
+        print(outputs["iou_pred"].shape[0])
         for key in outputs.keys():
             outputs[key] = outputs[key][keep_index]
 
@@ -166,6 +167,7 @@ class ImageTokenizer(nn.Module):
         keep_iou_score = outputs['iou_pred'] > iou_threthold
         for key in outputs.keys():
             outputs[key] = outputs[key][keep_iou_score]
+        print(outputs["iou_pred"].shape[0])
 
         # filter according mask stable
         stable_score = calculate_stability_score(
@@ -174,6 +176,7 @@ class ImageTokenizer(nn.Module):
         keep_stable_score = stable_score > stable_threthold
         for key in outputs.keys():
             outputs[key] = outputs[key][keep_stable_score]
+        print(outputs["iou_pred"].shape[0])
 
         # perform nms
         # get bbox from mask
@@ -192,6 +195,7 @@ class ImageTokenizer(nn.Module):
         )
         for key in outputs.keys():
             outputs[key] = outputs[key][keep_by_nms]
+        print(outputs["iou_pred"].shape[0])
 
         # no need for masks
         # # return outputs_["sem_embeds"]  # (N, 1024)
