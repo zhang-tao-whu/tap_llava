@@ -199,7 +199,6 @@ class ImageTokenizer(nn.Module):
         )
         for key in outputs.keys():
             outputs[key] = outputs[key][keep_by_nms]
-        print(outputs["iou_pred"].shape[0])
 
         # no need for masks
         # # return outputs_["sem_embeds"]  # (N, 1024)
