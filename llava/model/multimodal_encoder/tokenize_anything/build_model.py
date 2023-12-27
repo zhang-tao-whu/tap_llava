@@ -52,6 +52,7 @@ def load_weights(module, weights_file, strict=True):
 
 def load_weights_(module, weights_file, strict=True, remove='text_decoder'):
     print(weights_file)
+    module.is_loaded = True
     """Load a weights file."""
     if not weights_file:
         return module._IncompatibleKeys([], [])
