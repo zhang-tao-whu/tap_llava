@@ -145,7 +145,8 @@ class ModelWorker:
                     replace_token = DEFAULT_IM_START_TOKEN + replace_token + DEFAULT_IM_END_TOKEN
                 prompt = prompt.replace(DEFAULT_IMAGE_TOKEN, replace_token)
 
-                num_image_tokens = prompt.count(replace_token) * model.get_vision_tower().num_patches
+                # num_image_tokens = prompt.count(replace_token) * model.get_vision_tower().num_patches
+                num_image_tokens = 64
             else:
                 images = None
                 new_input_shapes, new_original_shapes = None, None
