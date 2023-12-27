@@ -135,6 +135,7 @@ class ImageTokenizer(nn.Module):
                                   iou_threthold=0.8, stable_threthold=0.8, nms_threthold=0.7, input_format='llava'):
         #  images (b, c, h, w)
         assert images.shape[0] == 1
+        print(images.shape)
         inputs = {'img': images}
         if input_format is not 'llava':
             inputs = self.get_inputs(inputs)
